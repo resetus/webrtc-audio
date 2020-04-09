@@ -1,50 +1,19 @@
-const peerConnection = new RTCPeerConnection();
-peerConnection.onicecandidate = event => {
-   console.log(event);
-   if (event.candidate) {
-      const candidate = {
-         type: 'candidate',
-         label: event.candidate.sdpMLineIndex,
-         id: event.candidate.sdpMid,
-         candidate: event.candidate.candidate
-      };
-
-      socket.emit('candidate', candidate); // socket io
-   }
-}
-
 let mediaRecorder;
+const statusElement = document.getElementById('status');
 
 const startStream = stream => {
    mediaRecorder = new MediaRecorder(stream);
    mediaRecorder.ondataavailable = function(e) {
+      statusElement.textContent = 'Получение данных...';
       socket.emit('eventServer', e.data);
    };
 };
 
-const createOffer = () => {
-   peerConnection.createOffer(
-      offer => {
-         peerConnection.setLocalDescription(offer);
-         socket.emit('offer', offer); // socket io
-      },
-      streamError
-   )
-};
-
-const createAnswer = () => {
-   peerConnection.createAnswer(
-      answer => {
-         peerConnection.setLocalDescription(answer);
-         socket.emit('answer', answer); // socket io
-      },
-      streamError
-   );
-}
-
 // socket
 const socket = io.connect(`//${window.location.host}`);
 socket.on('eventClient', arrayBuffer => {
+   statusElement.textContent = 'Данные получены...';
+
    const blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
    const audio = document.getElementById('audio-stream');
    audio.setAttribute('controls', '');
@@ -54,24 +23,10 @@ socket.on('eventClient', arrayBuffer => {
    audio.src = audioURL;
 });
 
-socket.on('offer', offer => {
-   peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-   createAnswer();
-});
-
-socket.on('answer', answer => {
-   peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-});
-
-socket.on('candidate', data => {
-   const candidate = new RTCIceCandidate({sdpMLineIndex: data.label, candidate: data.candidate});
-   peerConnection.addIceCandidate(candidate);
-});
-
 const startApp = async () => {
    const selectElement = document.getElementById('select-device');
-   const buttonRecord = document.getElementById('button-record');
-   const buttonStop = document.getElementById('button-stop');
+   const buttonRecordElement = document.getElementById('button-record');
+   const buttonStopElement = document.getElementById('button-stop');
 
    try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -92,7 +47,7 @@ const startApp = async () => {
       });
 
       selectElement.addEventListener('change', async e => {
-         buttonRecord.disabled = false;
+         buttonRecordElement.disabled = false;
 
          const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
@@ -106,25 +61,23 @@ const startApp = async () => {
          startStream(stream);
       });
 
-      buttonRecord.addEventListener('click', () => {
+      buttonRecordElement.addEventListener('click', () => {
          selectElement.disabled = true;
-         buttonRecord.disabled = true;
-         buttonStop.disabled = false;
+         buttonRecordElement.disabled = true;
+         buttonStopElement.disabled = false;
 
+         statusElement.textContent = 'Запись активирована...';
          mediaRecorder.start();
-         console.log("recorder start");
       });
 
-      buttonStop.addEventListener('click', () => {
+      buttonStopElement.addEventListener('click', () => {
          selectElement.disabled = true;
-         buttonRecord.disabled = false;
-         buttonStop.disabled = true;
+         buttonRecordElement.disabled = false;
+         buttonStopElement.disabled = true;
 
+         statusElement.textContent = 'Запись остановлена...';
          mediaRecorder.stop();
-         console.log("recorder stopped");
       });
-
-      createOffer();
    } catch(error) {
       console.error(error);
    }

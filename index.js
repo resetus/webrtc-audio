@@ -18,18 +18,8 @@ server.listen(port, () => {
 
 io.on('connection', socket => {
     socket.on('eventServer', blob => {
-        socket.broadcast.emit('eventClient', blob);
-    });
-
-    socket.on('offer', data => {
-        socket.broadcast.emit('offer', data);
-    });
-
-    socket.on('answer', data => {
-        socket.broadcast.emit('answer', data);
-    });
-
-    socket.on('candidate', data => {
-        socket.broadcast.emit('candidate', data);
+        setTimeout(() => {
+            socket.emit('eventClient', blob);
+        }, 2000);
     });
 });
