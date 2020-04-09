@@ -1,11 +1,15 @@
 const http = require('http');
+const path = require('path');
 const express = require('express');
-
 const app = express();
+
 const server = http.Server(app);
 const io = require('socket.io')(server);
-
 app.use(express.static(__dirname + '/public'));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/index.html'));
+});
 
 const port = 3000;
 server.listen(port, () => {
@@ -13,7 +17,19 @@ server.listen(port, () => {
 });
 
 io.on('connection', socket => {
-    socket.on('message', function (message) {
-        socket.broadcast.emit('message', message); // should be room only
+    socket.on('eventServer', blob => {
+        socket.broadcast.emit('eventClient', blob);
+    });
+
+    socket.on('offer', data => {
+        socket.broadcast.emit('offer', data);
+    });
+
+    socket.on('answer', data => {
+        socket.broadcast.emit('answer', data);
+    });
+
+    socket.on('candidate', data => {
+        socket.broadcast.emit('candidate', data);
     });
 });

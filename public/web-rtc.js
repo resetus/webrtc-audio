@@ -1,83 +1,72 @@
-// let peerConnection;
+const peerConnection = new RTCPeerConnection();
+peerConnection.onicecandidate = event => {
+   console.log(event);
+   if (event.candidate) {
+      const candidate = {
+         type: 'candidate',
+         label: event.candidate.sdpMLineIndex,
+         id: event.candidate.sdpMid,
+         candidate: event.candidate.candidate
+      };
 
-// const endCall = () => {
-//    const videoElement = document.querySelector('video')
-//    videoElement && videoElement.pause();
-//    peerConnection && peerConnection.close();
-// };
-
-const streamError = error => {
-   console.log(error)
-};
+      socket.emit('candidate', candidate); // socket io
+   }
+}
 
 let mediaRecorder;
-let chunks = [];
 
 const startStream = stream => {
    mediaRecorder = new MediaRecorder(stream);
-
-   mediaRecorder.onstop = function(e) {
-      console.log("data available after MediaRecorder.stop() called.");
-
-      const audio = document.getElementById('audio-stream');
-      audio.setAttribute('controls', '');
-      audio.controls = true;
-
-      const blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-      chunks = [];
-      const audioURL = window.URL.createObjectURL(blob);
-      audio.src = audioURL;
-
-      console.log("recorder stopped");
-   }
-
    mediaRecorder.ondataavailable = function(e) {
-      console.log(e.data);
-      chunks.push(e.data);
-   }
-
-   peerConnection.addStream(stream);
+      socket.emit('eventServer', e.data);
+   };
 };
 
-// const createOffer = () => {
-//    peerConnection.createOffer(
-//       offer => {
-//          peerConnection.setLocalDescription(offer);
-//          socket.emit('message', offer); // socket io
-//       },
-//       streamError
-//    )
-// };
+const createOffer = () => {
+   peerConnection.createOffer(
+      offer => {
+         peerConnection.setLocalDescription(offer);
+         socket.emit('offer', offer); // socket io
+      },
+      streamError
+   )
+};
 
-// const createAnswer = () => {
-//    peerConnection.createAnswer(
-//       answer => {
-//          peerConnection.setLocalDescription(answer);
-//          socket.emit('message', answer); // socket io
-//       },
-//       streamError
-//    );
-// }
+const createAnswer = () => {
+   peerConnection.createAnswer(
+      answer => {
+         peerConnection.setLocalDescription(answer);
+         socket.emit('answer', answer); // socket io
+      },
+      streamError
+   );
+}
 
-// // socket
-// const socket = io.connect(`//${window.location.host}`);
-// socket.on('message', function (data) {
-//    if (data.type === 'offer') {
-//       peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-//       createAnswer();
-//    }
+// socket
+const socket = io.connect(`//${window.location.host}`);
+socket.on('eventClient', arrayBuffer => {
+   const blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
+   const audio = document.getElementById('audio-stream');
+   audio.setAttribute('controls', '');
+   audio.controls = true;
 
-//    if (data.type === 'answer') {
-//       peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-//    }
+   const audioURL = window.URL.createObjectURL(blob);
+   audio.src = audioURL;
+});
 
-//    // if (data.type === 'candidate') {
-//    //    const candidate = new RTCIceCandidate({sdpMLineIndex: data.label, candidate: data.candidate});
-//    //    peerConnection.addIceCandidate(candidate);
-//    //  }
-// });
+socket.on('offer', offer => {
+   peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+   createAnswer();
+});
 
+socket.on('answer', answer => {
+   peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+});
 
+socket.on('candidate', data => {
+   const candidate = new RTCIceCandidate({sdpMLineIndex: data.label, candidate: data.candidate});
+   peerConnection.addIceCandidate(candidate);
+});
 
 const startApp = async () => {
    const selectElement = document.getElementById('select-device');
@@ -98,7 +87,6 @@ const startApp = async () => {
       audioDevices.forEach(item => {
          const elem = document.createElement('option');
          elem.value = item.deviceId;
-         console.log(item);
          elem.textContent = item.label ? item.label : item.deviceId;
          selectElement.appendChild(elem);
       });
@@ -124,7 +112,7 @@ const startApp = async () => {
          buttonStop.disabled = false;
 
          mediaRecorder.start();
-         console.log(mediaRecorder.state);
+         console.log("recorder start");
       });
 
       buttonStop.addEventListener('click', () => {
@@ -133,13 +121,17 @@ const startApp = async () => {
          buttonStop.disabled = true;
 
          mediaRecorder.stop();
-         console.log(mediaRecorder.state);
          console.log("recorder stopped");
       });
 
+      createOffer();
    } catch(error) {
       console.error(error);
    }
+};
+
+const streamError = error => {
+   console.log(error)
 };
 
 startApp();

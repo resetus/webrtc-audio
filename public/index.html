@@ -8,11 +8,14 @@
 <body>
     <div id="root">
         <div>
+            <p>STATUS <span id="status">Инициализация</span></p>
             <select id="select-device" value="">
                 <option value="" disabled selected>Выберите микрофон</option>
             </select>
             <button id="button-record" disabled>record</button>
             <button id="button-stop" disabled>stop</button>
+        </div>
+        <div>
             <audio id="audio-stream"></audio>
         </div>
         <p id="error-text"></p>
