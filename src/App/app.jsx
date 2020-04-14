@@ -15,7 +15,7 @@ export default class App extends PureComponent {
             isRecord: false,
             errorText: '',
             currentDevice: '-1',
-            statusText: 'Инициализация',
+            statusText: 'Инициализация...',
             blob: null,
             audioDevices: []
         };
@@ -50,7 +50,7 @@ export default class App extends PureComponent {
 
     _onStartHandler() {
         this.setState(
-            {isRecord: true, statusText: 'Запись активирована...'},
+            {isRecord: true, blob: null, statusText: 'Запись активирована...'},
             () =>  this.mediaRecorder.start()
         );
     }
@@ -108,7 +108,8 @@ export default class App extends PureComponent {
 
         return (
             <div className="app">   
-                <h3 className="app__title">WebRTC: <span>{statusText}</span></h3>
+                <h2 className="app__title">WebRTC</h2>
+                <p className="app__status">{statusText}</p>
                 <AppForm
                     isRecord={isRecord}
                     audioDevices={audioDevices}
