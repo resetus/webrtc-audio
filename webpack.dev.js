@@ -14,5 +14,19 @@ module.exports = merge(
 			compress: true,
 			port: 3000
 		}
+	},
+	{
+		module: {
+			rules: [
+				{
+					test: /\.s[ac]ss$/i,
+					use: [
+						'style-loader',
+						'css-loader',
+						'sass-loader'
+					]
+				}
+			]
+		}
 	}
 );

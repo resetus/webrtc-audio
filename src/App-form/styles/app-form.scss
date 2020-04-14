@@ -1,0 +1,52 @@
+.app-form {
+    &__item {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__select {
+        height: 30px;
+        line-height: 30px;
+
+        padding: 0 10px;
+        border-radius: 10px;
+
+        &:focus {
+            outline: none;
+        }
+
+        option:disabled {
+            background: #ddd;
+        }
+    }
+
+    &__button {
+        padding: 10px 15px;
+        border-radius: 10px;
+
+        background: #fff;
+        border: 1px solid #aaa;
+        margin: 0 5px;
+
+        font-size: 16px;
+
+        &:hover {
+            cursor: pointer;
+            background: #f7f7f7;
+        }
+
+        &:focus {
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: default;
+            background: #ccc;
+        }
+    }
+}

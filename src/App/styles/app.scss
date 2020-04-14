@@ -1,0 +1,37 @@
+.app {
+    width: 50%;
+    margin: 50px auto;
+
+    background: #f7f7f7;
+    border: 1px solid #aaa;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, .2);
+
+    font-family: 'Arial';
+
+    &__title {
+        text-align: center;
+        margin: 0 0 20px;
+    }
+
+    &__audio-stream {
+        display: flex;
+        justify-content: center;
+        margin-top: 40px;
+
+        audio {
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #aaa;
+            border-radius: 40px;
+        }
+    }
+
+    &__error {
+        margin: 20px 0 0;
+        color: coral;
+        font-size: 14px;
+        text-align: center;
+    }
+}
